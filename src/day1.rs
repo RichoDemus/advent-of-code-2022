@@ -1,7 +1,7 @@
 #[aoc(day1, part1)]
 fn part1(input: &str) -> u32 {
-    let input = input.trim();
     input
+        .trim()
         .split("\n\n")
         .map(|elf| {
             elf.split('\n')
@@ -17,8 +17,8 @@ fn part1(input: &str) -> u32 {
 
 #[aoc(day1, part2)]
 fn part2(input: &str) -> u32 {
-    let input = input.trim();
     let mut calories = input
+        .trim()
         .split("\n\n")
         .map(|elf| {
             elf.split('\n')
