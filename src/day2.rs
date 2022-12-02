@@ -5,37 +5,39 @@ enum Move {
     Scissors,
 }
 
-impl From<char> for Move {
-    fn from(mov: char) -> Self {
-        match mov {
-            'A' | 'X' => Move::Rock,
-            'B' | 'Y' => Move::Paper,
-            'C' | 'Z' => Move::Scissors,
-            _ => panic!("asd"),
+impl TryFrom<char> for Move {
+    type Error = String;
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        match value {
+            'A' | 'X' => Ok(Self::Rock),
+            'B' | 'Y' => Ok(Self::Paper),
+            'C' | 'Z' => Ok(Self::Scissors),
+            e => Err(format!("unexpected value: {}", e)),
         }
     }
 }
 
 impl Move {
-    fn score(&self) -> usize {
+    const fn score(self) -> usize {
         match self {
-            Move::Rock => 1,
-            Move::Paper => 2,
-            Move::Scissors => 3,
+            Self::Rock => 1,
+            Self::Paper => 2,
+            Self::Scissors => 3,
         }
     }
-    fn beats(&self) -> Move {
+    const fn beats(self) -> Self {
         match self {
-            Move::Rock => Move::Scissors,
-            Move::Paper => Move::Rock,
-            Move::Scissors => Move::Paper,
+            Self::Rock => Self::Scissors,
+            Self::Paper => Self::Rock,
+            Self::Scissors => Self::Paper,
         }
     }
-    fn beaten_by(&self) -> Move {
+    const fn beaten_by(self) -> Self {
         match self {
-            Move::Rock => Move::Paper,
-            Move::Paper => Move::Scissors,
-            Move::Scissors => Move::Rock,
+            Self::Rock => Self::Paper,
+            Self::Paper => Self::Scissors,
+            Self::Scissors => Self::Rock,
         }
     }
 }
@@ -47,39 +49,36 @@ enum Outcome {
     Lose,
 }
 
-impl From<char> for Outcome {
-    fn from(mov: char) -> Self {
-        match mov {
-            'X' => Outcome::Lose,
-            'Y' => Outcome::Draw,
-            'Z' => Outcome::Win,
-            _ => panic!("asd"),
+impl TryFrom<char> for Outcome {
+    type Error = String;
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        match value {
+            'X' => Ok(Self::Lose),
+            'Y' => Ok(Self::Draw),
+            'Z' => Ok(Self::Win),
+            e => Err(format!("unexpected value: {}", e)),
         }
     }
 }
 
 impl Outcome {
-    fn score(&self) -> usize {
+    const fn score(self) -> usize {
         match self {
-            Outcome::Win => 6,
-            Outcome::Draw => 3,
-            Outcome::Lose => 0,
+            Self::Win => 6,
+            Self::Draw => 3,
+            Self::Lose => 0,
         }
     }
 }
 
 fn calc_outcome(my_move: Move, opponent_move: Move) -> Outcome {
     if my_move == opponent_move {
-        return Outcome::Draw;
-    }
-    match (my_move, opponent_move) {
-        (Move::Rock, Move::Scissors) => Outcome::Win,
-        (Move::Rock, Move::Paper) => Outcome::Lose,
-        (Move::Paper, Move::Scissors) => Outcome::Lose,
-        (Move::Paper, Move::Rock) => Outcome::Win,
-        (Move::Scissors, Move::Rock) => Outcome::Lose,
-        (Move::Scissors, Move::Paper) => Outcome::Win,
-        _ => panic!(),
+        Outcome::Draw
+    } else if my_move.beats() == opponent_move {
+        Outcome::Win
+    } else {
+        Outcome::Lose
     }
 }
 
@@ -112,7 +111,12 @@ fn parse_input(input: &str) -> Vec<(char, char)> {
 fn part1(input: &[(char, char)]) -> usize {
     input
         .iter()
-        .map(|(opponent, strat)| (Move::from(*opponent), Move::from(*strat)))
+        .map(|(opponent, strat)| {
+            (
+                Move::try_from(*opponent).unwrap(),
+                Move::try_from(*strat).unwrap(),
+            )
+        })
         .fold(0, |score, (opponent_move, my_move)| {
             let outcome = calc_outcome(my_move, opponent_move);
             score + my_move.score() + outcome.score()
@@ -123,7 +127,12 @@ fn part1(input: &[(char, char)]) -> usize {
 fn part2(input: &[(char, char)]) -> usize {
     input
         .iter()
-        .map(|(opponent, outcome)| (Move::from(*opponent), Outcome::from(*outcome)))
+        .map(|(opponent, outcome)| {
+            (
+                Move::try_from(*opponent).unwrap(),
+                Outcome::try_from(*outcome).unwrap(),
+            )
+        })
         .fold(0, |score, (opponent_move, outcome)| {
             let my_move = calc_move(opponent_move, outcome);
             score + my_move.score() + outcome.score()
