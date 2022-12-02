@@ -1,3 +1,98 @@
+#[derive(Eq, PartialEq, Copy, Clone)]
+enum Move {
+    Rock,
+    Paper,
+    Scissors,
+}
+
+impl From<char> for Move {
+    fn from(mov: char) -> Self {
+        match mov {
+            'A' | 'X' => Move::Rock,
+            'B' | 'Y' => Move::Paper,
+            'C' | 'Z' => Move::Scissors,
+            _ => panic!("asd"),
+        }
+    }
+}
+
+impl Move {
+    fn score(&self) -> usize {
+        match self {
+            Move::Rock => 1,
+            Move::Paper => 2,
+            Move::Scissors => 3,
+        }
+    }
+    fn beats(&self) -> Move {
+        match self {
+            Move::Rock => Move::Scissors,
+            Move::Paper => Move::Rock,
+            Move::Scissors => Move::Paper,
+        }
+    }
+    fn beaten_by(&self) -> Move {
+        match self {
+            Move::Rock => Move::Paper,
+            Move::Paper => Move::Scissors,
+            Move::Scissors => Move::Rock,
+        }
+    }
+}
+
+#[derive(Eq, PartialEq, Copy, Clone)]
+enum Outcome {
+    Win,
+    Draw,
+    Lose,
+}
+
+impl From<char> for Outcome {
+    fn from(mov: char) -> Self {
+        match mov {
+            'X' => Outcome::Lose,
+            'Y' => Outcome::Draw,
+            'Z' => Outcome::Win,
+            _ => panic!("asd"),
+        }
+    }
+}
+
+impl Outcome {
+    fn score(&self) -> usize {
+        match self {
+            Outcome::Win => 6,
+            Outcome::Draw => 3,
+            Outcome::Lose => 0,
+        }
+    }
+}
+
+fn calc_outcome(my_move: Move, opponent_move: Move) -> Outcome {
+    if my_move == opponent_move {
+        return Outcome::Draw;
+    }
+    match (my_move, opponent_move) {
+        (Move::Rock, Move::Scissors) => Outcome::Win,
+        (Move::Rock, Move::Paper) => Outcome::Lose,
+        (Move::Paper, Move::Scissors) => Outcome::Lose,
+        (Move::Paper, Move::Rock) => Outcome::Win,
+        (Move::Scissors, Move::Rock) => Outcome::Lose,
+        (Move::Scissors, Move::Paper) => Outcome::Win,
+        _ => panic!(),
+    }
+}
+
+fn calc_move(opponent_move: Move, desired_outcome: Outcome) -> Move {
+    if desired_outcome == Outcome::Draw {
+        opponent_move
+    } else if desired_outcome == Outcome::Win {
+        opponent_move.beaten_by()
+    } else {
+        opponent_move.beats()
+    }
+}
+
 #[aoc_generator(day2)]
 fn parse_input(input: &str) -> Vec<(char, char)> {
     input
@@ -15,91 +110,24 @@ fn parse_input(input: &str) -> Vec<(char, char)> {
 
 #[aoc(day2, part1)]
 fn part1(input: &[(char, char)]) -> usize {
-    input.into_iter().fold(0, |score, (oppo, strategy)| {
-        let score_from_move = match *strategy {
-            'X' => 1, // rock
-            'Y' => 2, // paper
-            'Z' => 3, // scissors
-            _ => panic!("wat"),
-        };
-
-        // A Rock
-        // B paper
-        // c scisssors
-        let score_from_outcome = match (*oppo, *strategy) {
-            ('A', 'Y') => 6,
-            ('A', 'Z') => 0,
-            ('A', 'X') => 3,
-            ('B', 'X') => 0,
-            ('B', 'Y') => 3,
-            ('B', 'Z') => 6,
-            ('C', 'Z') => 3,
-            ('C', 'Y') => 0,
-            ('C', 'X') => 6,
-            (o, s) => panic!("unhanled: {} {}", o, s),
-        };
-
-        score + score_from_move + score_from_outcome
-    })
+    input
+        .iter()
+        .map(|(opponent, strat)| (Move::from(*opponent), Move::from(*strat)))
+        .fold(0, |score, (opponent_move, my_move)| {
+            let outcome = calc_outcome(my_move, opponent_move);
+            score + my_move.score() + outcome.score()
+        })
 }
 
 #[aoc(day2, part2)]
 fn part2(input: &[(char, char)]) -> usize {
-    input.into_iter().fold(0, |score, (oppo, outcome)| {
-        // A Rock
-        // B paper
-        // c scisssors
-        // x lose
-        // y draw
-        // z win
-
-        let score_from_outcome = match *outcome {
-            'X' => 0,
-            'Y' => 3,
-            'Z' => 6,
-            _ => panic!("wat"),
-        };
-
-        let score_from_move = if *outcome == 'X' {
-            //lose
-            if *oppo == 'A' {
-                // we do scissors
-                3
-            } else if *oppo == 'B' {
-                // we do rock
-                1
-            } else {
-                // we do paper
-                2
-            }
-        } else if *outcome == 'Y' {
-            // draw
-            if *oppo == 'A' {
-                // we do rock
-                1
-            } else if *oppo == 'B' {
-                // we do paper
-                2
-            } else {
-                // we do scissors
-                3
-            }
-        } else {
-            //win
-            if *oppo == 'A' {
-                // we do paper
-                2
-            } else if *oppo == 'B' {
-                // we do scissors
-                3
-            } else {
-                // we do rock
-                1
-            }
-        };
-
-        score + score_from_move + score_from_outcome
-    })
+    input
+        .iter()
+        .map(|(opponent, outcome)| (Move::from(*opponent), Outcome::from(*outcome)))
+        .fold(0, |score, (opponent_move, outcome)| {
+            let my_move = calc_move(opponent_move, outcome);
+            score + my_move.score() + outcome.score()
+        })
 }
 
 #[cfg(test)]
