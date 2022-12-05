@@ -1,6 +1,5 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::collections::HashSet;
 
 #[derive(Debug)]
 struct Range {
@@ -27,9 +26,9 @@ fn part1(input: &str) -> usize {
             )
         })
         .map(|(first_pair, second_pair): (Range, Range)| {
-            if first_pair.lower <= second_pair.lower && first_pair.upper >= second_pair.upper {
-                1
-            } else if second_pair.lower <= first_pair.lower && second_pair.upper >= first_pair.upper
+            #[allow(clippy::bool_to_int_with_if)]
+            if (first_pair.lower <= second_pair.lower && first_pair.upper >= second_pair.upper)
+                || (second_pair.lower <= first_pair.lower && second_pair.upper >= first_pair.upper)
             {
                 1
             } else {
@@ -58,9 +57,9 @@ fn part2(input: &str) -> usize {
             )
         })
         .map(|(first_pair, second_pair): (Range, Range)| {
-            if first_pair.lower <= second_pair.lower && first_pair.upper >= second_pair.lower {
-                1
-            } else if second_pair.lower <= first_pair.lower && second_pair.upper >= first_pair.lower
+            #[allow(clippy::bool_to_int_with_if, clippy::suspicious_operation_groupings)]
+            if (first_pair.lower <= second_pair.lower && first_pair.upper >= second_pair.lower)
+                || (second_pair.lower <= first_pair.lower && second_pair.upper >= first_pair.lower)
             {
                 1
             } else {
