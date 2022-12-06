@@ -1,9 +1,3 @@
-#[aoc_generator(dayX)]
-fn parse_input(input: &str) -> Vec<u8> {
-    todo!()
-}
-
-
 #[aoc(dayX, part1)]
 fn part1(input: &[Line]) -> usize {
     todo!()
@@ -21,14 +15,13 @@ mod tests {
 // #[test]
     // fn verify_part1() {
     //     let input = include_str!("../input/2022/dayX.txt");
-    //     let input = parse_input(input);
-    //     assert_eq!(part1(input.as_slice()), 6666);
+    //     assert_eq!(part1(input), 6666);
     // }
 
     // #[test]
     // fn verify_part2() {
     //     let input = include_str!("../input/2022/dayX.txt");
-    //     assert_eq!(part2(parse_input(input).as_slice()), 19081);
+    //     assert_eq!(part2(input), 19081);
     // }
 
     #[test]
