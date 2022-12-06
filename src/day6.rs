@@ -16,6 +16,19 @@ fn part1(input: &str) -> usize {
     panic!()
 }
 
+#[aoc(day6, part1, fp)]
+fn part1_fp(input: &str) -> usize {
+    input
+        .chars()
+        .collect::<Vec<_>>()
+        .as_slice()
+        .windows(4)
+        .map(|w| w.iter().collect::<HashSet<_>>())
+        .position(|h| h.len() == 4)
+        .unwrap()
+        + 4
+}
+
 #[aoc(day6, part2)]
 fn part2(input: &str) -> usize {
     let chars = input.chars().collect::<Vec<_>>();
@@ -38,8 +51,8 @@ mod tests {
 
     #[test]
     fn verify_part1() {
-        let input = include_str!("../input/2022/day6.txt");
-        assert_eq!(part1(input), 1909);
+        assert_eq!(part1(include_str!("../input/2022/day6.txt")), 1909);
+        assert_eq!(part1_fp(include_str!("../input/2022/day6.txt")), 1909);
     }
 
     #[test]
