@@ -1,10 +1,10 @@
 #[aoc(dayX, part1)]
-fn part1(input: &[Line]) -> usize {
+fn part1(input: &str) -> usize {
     todo!()
 }
 
 // #[aoc(dayX, part2)]
-// fn part2(input: &[Line]) -> usize {
+// fn part2(input: &str) -> usize {
 //     todo!()
 // }
 
@@ -15,13 +15,13 @@ mod tests {
 // #[test]
     // fn verify_part1() {
     //     let input = include_str!("../input/2022/dayX.txt");
-    //     assert_eq!(part1(input), 6666);
+    //     assert_eq!(part1(input), 0);
     // }
 
     // #[test]
     // fn verify_part2() {
     //     let input = include_str!("../input/2022/dayX.txt");
-    //     assert_eq!(part2(input), 19081);
+    //     assert_eq!(part2(input), 0);
     // }
 
     #[test]
@@ -30,9 +30,15 @@ mod tests {
             r#""#,
         ));
 
-        assert_eq!(result, 5)
+        assert_eq!(result, 0)
     }
 
-    #[test]
-    fn part2_provided_example() {}
+    // #[test]
+    // fn part2_provided_example() {
+    //     let result = part2(&parse_input(
+    //         r#""#,
+    //     ));
+    //
+    //     assert_eq!(result, 0)
+    // }
 }
