@@ -10,8 +10,8 @@ enum Line {
     File(File),
 }
 
-fn parse(input: &str) -> Vec<Line> {
-    input
+fn parse(input: &str) -> FileSystem {
+    let mut lines = input
         .trim()
         .split('\n')
         .map(|line| {
@@ -45,7 +45,29 @@ fn parse(input: &str) -> Vec<Line> {
                 })
             }
         })
-        .collect()
+        .collect::<Vec<_>>();
+    lines.remove(0);
+    let mut filesystem = FileSystem::new();
+    for line in lines {
+        match line {
+            Line::ChangeDirectory(dir) => {
+                filesystem.cd(dir);
+            }
+            Line::ChangeDirectoryUp => {
+                filesystem.cddotdot();
+            }
+            Line::List => {
+                //noop
+            }
+            Line::Directory(name) => {
+                filesystem.mkdir(name);
+            }
+            Line::File(file) => {
+                filesystem.create(file);
+            }
+        }
+    }
+    filesystem
 }
 
 #[derive(Debug, Clone)]
@@ -166,28 +188,7 @@ impl FileSystem {
 
 #[aoc(day7, part1)]
 fn part1(input: &str) -> i32 {
-    let mut lines = parse(input);
-    lines.remove(0);
-    let mut filesystem = FileSystem::new();
-    for line in lines {
-        match line {
-            Line::ChangeDirectory(dir) => {
-                filesystem.cd(dir);
-            }
-            Line::ChangeDirectoryUp => {
-                filesystem.cddotdot();
-            }
-            Line::List => {
-                //noop
-            }
-            Line::Directory(name) => {
-                filesystem.mkdir(name);
-            }
-            Line::File(file) => {
-                filesystem.create(file);
-            }
-        }
-    }
+    let filesystem = parse(input);
 
     println!("total size: {}", filesystem.size());
     let dirs = filesystem.dirs_with_sizes();
@@ -200,28 +201,7 @@ fn part1(input: &str) -> i32 {
 
 #[aoc(day7, part2)]
 fn part2(input: &str) -> i32 {
-    let mut lines = parse(input);
-    lines.remove(0);
-    let mut filesystem = FileSystem::new();
-    for line in lines {
-        match line {
-            Line::ChangeDirectory(dir) => {
-                filesystem.cd(dir);
-            }
-            Line::ChangeDirectoryUp => {
-                filesystem.cddotdot();
-            }
-            Line::List => {
-                //noop
-            }
-            Line::Directory(name) => {
-                filesystem.mkdir(name);
-            }
-            Line::File(file) => {
-                filesystem.create(file);
-            }
-        }
-    }
+    let filesystem = parse(input);
 
     let total_size = 70_000_000;
     let required_space = 30_000_000;
