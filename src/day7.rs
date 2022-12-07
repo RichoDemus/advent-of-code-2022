@@ -145,31 +145,31 @@ impl FileSystem {
             pwd: vec!["/".to_string()],
         }
     }
-    fn mkdir(&mut self, name: String) {
+
+    fn get_current_dir(&self) -> Arc<Mutex<Node>> {
         let mut node = self.root.clone();
         for dir in &self.pwd {
             if node.lock().unwrap().name() == *dir {
                 continue;
             }
-            let qwe = node.clone();
-            let guard = qwe.lock().unwrap();
-            let asd = guard.get_child_by_name(dir.as_str()).unwrap();
-            node = asd.clone();
+            node = node
+                .clone()
+                .lock()
+                .unwrap()
+                .get_child_by_name(dir.as_str())
+                .unwrap()
+                .clone();
         }
-        node.lock().unwrap().mkdir(Node::Dir(name, vec![]));
+        node
+    }
+    fn mkdir(&mut self, name: String) {
+        self.get_current_dir()
+            .lock()
+            .unwrap()
+            .mkdir(Node::Dir(name, vec![]));
     }
     fn create(&mut self, file: File) {
-        let mut node = self.root.clone();
-        for dir in &self.pwd {
-            if node.lock().unwrap().name() == *dir {
-                continue;
-            }
-            let qwe = node.clone();
-            let guard = qwe.lock().unwrap();
-            let asd = guard.get_child_by_name(dir.as_str()).unwrap();
-            node = asd.clone();
-        }
-        node.lock().unwrap().create(file);
+        self.get_current_dir().lock().unwrap().create(file);
     }
     fn cd(&mut self, dir: String) {
         self.pwd.push(dir);
