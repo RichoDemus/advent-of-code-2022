@@ -1,6 +1,4 @@
-use std::cell::RefCell;
-use std::collections::{HashMap, VecDeque};
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 
 #[derive(Debug)]
@@ -13,19 +11,21 @@ enum Line {
 }
 
 fn parse(input: &str) -> Vec<Line> {
-    input.trim().split('\n')
-        .map(|line|{
+    input
+        .trim()
+        .split('\n')
+        .map(|line| {
             let mut line = line.chars().collect::<Vec<_>>();
-            if line[0] == '$'  && line[2] == 'c' && line[5] == '.'  {
+            if line[0] == '$' && line[2] == 'c' && line[5] == '.' {
                 Line::ChangeDirectoryUp
-            } else  if line[0] == '$'  && line[2] == 'c' {
+            } else if line[0] == '$' && line[2] == 'c' {
                 line.remove(0);
                 line.remove(0);
                 line.remove(0);
                 line.remove(0);
                 line.remove(0);
                 Line::ChangeDirectory(line.into_iter().collect())
-            } else if line[0] == '$'  && line[2] == 'l' {
+            } else if line[0] == '$' && line[2] == 'l' {
                 Line::List
             } else if line[0] == 'd' {
                 line.remove(0);
@@ -36,10 +36,13 @@ fn parse(input: &str) -> Vec<Line> {
             } else {
                 let str = line.into_iter().collect::<String>();
                 let mut split = str.split_ascii_whitespace();
-                let size = split.next().unwrap().parse::<u32>().unwrap();
+                let size = split.next().unwrap().parse::<i32>().unwrap();
                 let name = split.next().unwrap();
 
-                Line::File(File{name:name.to_string(), size})
+                Line::File(File {
+                    name: name.to_string(),
+                    size,
+                })
             }
         })
         .collect()
@@ -47,62 +50,56 @@ fn parse(input: &str) -> Vec<Line> {
 
 #[derive(Debug, Clone)]
 struct File {
-    name:String,
-    size:u32,
-}
-
-#[derive(Debug, Clone)]
-struct DirWithSize {
     name: String,
-    size: u32,
+    size: i32,
 }
 
 #[derive(Debug, Clone)]
 enum Node {
     Dir(String, Vec<Arc<Mutex<Node>>>),
-    File(String, u32),
+    File(String, i32),
 }
 impl Node {
     fn name(&self) -> String {
         match self {
-            Node::Dir(n, _) => n.clone(),
-            Node::File(n, _) => n.clone(),
+            Self::File(n, _) | Self::Dir(n, _) => n.clone(),
         }
     }
-    fn get_child_by_name(&self, name:String) -> Option<Arc<Mutex<Node>>> {
+    fn get_child_by_name(&self, name: &str) -> Option<Arc<Mutex<Self>>> {
         match self {
-            Node::Dir(_, children) => {
-                children.iter().find(|n| n.lock().unwrap().name() == name).cloned()
+            Self::Dir(_, children) => children
+                .iter()
+                .find(|n| n.lock().unwrap().name() == name)
+                .cloned(),
+            Self::File(_, _) => None,
+        }
+    }
+    fn mkdir(&mut self, dir: Self) {
+        match self {
+            Self::Dir(_, dirs) => dirs.push(Arc::new(Mutex::new(dir))),
+            Self::File(_, _) => {
+                panic!("cant happen")
             }
-            Node::File(_, _) => None,
         }
     }
-    fn mkdir(&mut self, dir:Node) {
+    fn create(&mut self, file: File) {
         match self {
-            Node::Dir(_, dirs) => { dirs.push(Arc::new(Mutex::new(dir))) }
-            Node::File(_, _) => { panic!("cant happen") }
-        }
-    }
-    fn create(&mut self, file:File) {
-        match self {
-            Node::Dir(_, dirs) => { dirs.push(Arc::new(Mutex::new(Node::File(file.name, file.size)))) }
-            Node::File(_, _) => { panic!("cant happen") }
-        }
-    }
-    fn size(&self) -> u32 {
-        match self {
-            Node::Dir(_, files) => {
-                files.iter()
-                    .map(|file|file.lock().unwrap().size())
-                    .sum()
+            Self::Dir(_, dirs) => dirs.push(Arc::new(Mutex::new(Self::File(file.name, file.size)))),
+            Self::File(_, _) => {
+                panic!("cant happen")
             }
-            Node::File(_, size) => *size
         }
     }
-    fn dirs_with_sizes(&self) -> Vec<DirWithSize>{
-        if let Node::Dir(_,children) = self {
+    fn size(&self) -> i32 {
+        match self {
+            Self::Dir(_, files) => files.iter().map(|file| file.lock().unwrap().size()).sum(),
+            Self::File(_, size) => *size,
+        }
+    }
+    fn dirs_with_sizes(&self) -> Vec<i32> {
+        if let Self::Dir(_, children) = self {
             let mut result = vec![];
-            result.push(DirWithSize {name: self.name(), size: self.size()});
+            result.push(self.size());
             for child in children {
                 result.append(&mut child.lock().unwrap().dirs_with_sizes());
             }
@@ -110,7 +107,6 @@ impl Node {
         } else {
             vec![]
         }
-
     }
 }
 #[derive(Debug)]
@@ -127,28 +123,28 @@ impl FileSystem {
             pwd: vec!["/".to_string()],
         }
     }
-    fn mkdir(&mut self, name:String) {
+    fn mkdir(&mut self, name: String) {
         let mut node = self.root.clone();
         for dir in &self.pwd {
             if node.lock().unwrap().name() == *dir {
-                continue
+                continue;
             }
             let qwe = node.clone();
             let guard = qwe.lock().unwrap();
-            let asd = guard.get_child_by_name(dir.clone()).unwrap();
+            let asd = guard.get_child_by_name(dir.as_str()).unwrap();
             node = asd.clone();
         }
         node.lock().unwrap().mkdir(Node::Dir(name, vec![]));
     }
-    fn create(&mut self,file:File) {
+    fn create(&mut self, file: File) {
         let mut node = self.root.clone();
         for dir in &self.pwd {
             if node.lock().unwrap().name() == *dir {
-                continue
+                continue;
             }
             let qwe = node.clone();
             let guard = qwe.lock().unwrap();
-            let asd = guard.get_child_by_name(dir.clone()).unwrap();
+            let asd = guard.get_child_by_name(dir.as_str()).unwrap();
             node = asd.clone();
         }
         node.lock().unwrap().create(file);
@@ -159,28 +155,28 @@ impl FileSystem {
     fn cddotdot(&mut self) {
         self.pwd.pop();
     }
-    fn size(&self) -> u32 {
+    fn size(&self) -> i32 {
         self.root.lock().unwrap().size()
     }
 
-    fn dirs_with_sizes(&self) -> Vec<DirWithSize>{
+    fn dirs_with_sizes(&self) -> Vec<i32> {
         self.root.lock().unwrap().dirs_with_sizes()
     }
 }
 
 #[aoc(day7, part1)]
-fn part1(input: &str) -> u32 {
+fn part1(input: &str) -> i32 {
     let mut lines = parse(input);
     lines.remove(0);
     let mut filesystem = FileSystem::new();
     for line in lines {
         match line {
             Line::ChangeDirectory(dir) => {
-            filesystem.cd(dir);
-            },
+                filesystem.cd(dir);
+            }
             Line::ChangeDirectoryUp => {
-               filesystem.cddotdot();
-            },
+                filesystem.cddotdot();
+            }
             Line::List => {
                 //noop
             }
@@ -197,18 +193,13 @@ fn part1(input: &str) -> u32 {
     let dirs = filesystem.dirs_with_sizes();
     println!("sizes: {:?}", dirs);
 
-    dirs.into_iter().map(|dir|{
-        if dir.size <= 100000 {
-            dir.size
-        } else {
-            0
-        }
-    }).sum()
-
+    dirs.into_iter()
+        .map(|size| if size <= 100_000 { size } else { 0 })
+        .sum()
 }
 
 #[aoc(day7, part2)]
-fn part2(input: &str) -> u32 {
+fn part2(input: &str) -> i32 {
     let mut lines = parse(input);
     lines.remove(0);
     let mut filesystem = FileSystem::new();
@@ -216,10 +207,10 @@ fn part2(input: &str) -> u32 {
         match line {
             Line::ChangeDirectory(dir) => {
                 filesystem.cd(dir);
-            },
+            }
             Line::ChangeDirectoryUp => {
                 filesystem.cddotdot();
-            },
+            }
             Line::List => {
                 //noop
             }
@@ -232,18 +223,19 @@ fn part2(input: &str) -> u32 {
         }
     }
 
-    let total_size = 70000000;
-    let required_space = 30000000;
-    let current_usage = filesystem.size() as i32;
-    let missing_space = ((total_size - required_space - current_usage) *-1) as u32;
-    println!("usage: {}, need to free {}", current_usage,missing_space );
+    let total_size = 70_000_000;
+    let required_space = 30_000_000;
+    let current_usage = filesystem.size();
+    let missing_space = 0 - (total_size - required_space - current_usage);
+
+    println!("usage: {}, need to free {}", current_usage, missing_space);
 
     let mut candidates_for_deletion = filesystem.dirs_with_sizes();
-    candidates_for_deletion.sort_unstable_by_key(|d|d.size);
+    candidates_for_deletion.sort_unstable_by_key(|size| *size);
     println!("candidates: {:?}", candidates_for_deletion);
     for candidate in candidates_for_deletion {
-        if candidate.size > missing_space {
-            return candidate.size
+        if candidate > missing_space {
+            return candidate;
         }
     }
 
@@ -254,7 +246,7 @@ fn part2(input: &str) -> u32 {
 mod tests {
     use super::*;
 
-#[test]
+    #[test]
     fn verify_part1() {
         let input = include_str!("../input/2022/day7.txt");
         assert_eq!(part1(input), 1454188);
