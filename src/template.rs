@@ -26,18 +26,18 @@ mod tests {
 
     #[test]
     fn part1_provided_example() {
-        let result = part1(&parse_input(
+        let result = part1(
             r#""#,
-        ));
+        );
 
         assert_eq!(result, 0)
     }
 
     // #[test]
     // fn part2_provided_example() {
-    //     let result = part2(&parse_input(
+    //     let result = part2(
     //         r#""#,
-    //     ));
+    //     );
     //
     //     assert_eq!(result, 0)
     // }
