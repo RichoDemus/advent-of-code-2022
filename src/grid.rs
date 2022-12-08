@@ -96,6 +96,7 @@ impl<V: std::str::FromStr + std::fmt::Display + std::fmt::Debug> Display for Gri
     }
 }
 
+#[allow(dead_code)]
 pub fn get_eight_neighbours(x: i64, y: i64) -> Vec<(i64, i64)> {
     let mut result = vec![];
     for dx in -1..=1 {

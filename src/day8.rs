@@ -1,5 +1,4 @@
 use crate::grid::Grid;
-use colored::*;
 use std::collections::HashMap;
 
 #[aoc(day8, part1)]
@@ -8,7 +7,7 @@ fn part1(input: &str) -> usize {
     let mut result_grid = HashMap::new();
     // println!("{}", grid);
     let mut visibles = 0;
-    'next: for x in 0..=grid.x_max() {
+    for x in 0..=grid.x_max() {
         for y in 0..=grid.y_max() {
             let height = *grid.grid.get(&(x, y)).unwrap();
             // println!("considering {}@({},{})", height,x,y);
@@ -68,13 +67,14 @@ fn part1(input: &str) -> usize {
     visibles
 }
 
+#[allow(clippy::similar_names)]
 #[aoc(day8, part2)]
 fn part2(input: &str) -> usize {
     let grid: Grid<u8> = Grid::from_non_delim_block(input);
     // let mut result_grid = HashMap::new();
     // println!("{}", grid);
     let mut best_score = 0;
-    'next: for x in 0..=grid.x_max() {
+    for x in 0..=grid.x_max() {
         for y in 0..=grid.y_max() {
             let height = *grid.grid.get(&(x, y)).unwrap();
             // println!("considering {}@({},{})", height,x,y);
