@@ -81,6 +81,7 @@ enum Node {
     Dir(String, Vec<Arc<Mutex<Node>>>),
     File(String, i32),
 }
+
 impl Node {
     fn name(&self) -> String {
         match self {
@@ -131,6 +132,7 @@ impl Node {
         }
     }
 }
+
 #[derive(Debug)]
 struct FileSystem {
     root: Arc<Mutex<Node>>,
