@@ -1,44 +1,47 @@
-use std::collections::HashSet;
 use crate::day9::Direction::{Down, Left, Right, Up};
+use std::collections::HashSet;
 
 #[aoc(day9, part1)]
 fn part1(input: &str) -> usize {
     let mut tail_visits: HashSet<(i32, i32)> = HashSet::new();
-    let mut headX = 1000;
-    let mut headY = 1000;
-    let mut tailX = 1000;
-    let mut tailY = 1000;
+    let mut head_x = 1000;
+    let mut head_y = 1000;
+    let mut tail_x = 1000;
+    let mut tail_y = 1000;
     for line in input.lines() {
-        println!("{}", line);
+        // println!("{}", line);
         let (direction, steps) = directions(line);
-        for i in 0..steps {
+        for _ in 0..steps {
             match direction {
-                Up => headY +=1,
-                Down => headY -= 1,
-                Left => headX -= 1,
-                Right => headX += 1,
+                Up => head_y += 1,
+                Down => head_y -= 1,
+                Left => head_x -= 1,
+                Right => head_x += 1,
             };
-            (tailX, tailY) = calc_new_tail_position(headX, headY, tailX, tailY);
-            println!("\tStep, now at {},{}, tail {},{}", headX, headY, tailX, tailY);
-            for y in ((headY-4)..(headY+4)).rev() {
-                for x in (headX-4)..(headX+4) {
-                    if headX == x && headY == y {
-                        print!("H");
-                    } else if tailX == x && tailY == y {
-                        print!("T")
-                    } else {
-                        print!(".")
-                    }
-                }
-                println!()
-            }
-            println!("\n------------------------------------");
-            tail_visits.insert((tailX, tailY));
-            assert!(headX > -1);
-            assert!(headY > -1);
-            assert!(tailX > -1);
-            assert!(tailY > -1);
-            assert!(distance(headX, headY, tailX, tailY) < 2);
+            (tail_x, tail_y) = calc_new_tail_position(head_x, head_y, tail_x, tail_y);
+            // println!(
+            //     "\tStep, now at {},{}, tail {},{}",
+            //     head_x, head_y, tail_x, tail_y
+            // );
+            // for y in ((head_y - 4)..(head_y + 4)).rev() {
+            //     for x in (head_x - 4)..(head_x + 4) {
+            //         if head_x == x && head_y == y {
+            //             print!("H");
+            //         } else if tail_x == x && tail_y == y {
+            //             print!("T")
+            //         } else {
+            //             print!(".")
+            //         }
+            //     }
+            //     println!()
+            // }
+            // println!("\n------------------------------------");
+            tail_visits.insert((tail_x, tail_y));
+            assert!(head_x > -1);
+            assert!(head_y > -1);
+            assert!(tail_x > -1);
+            assert!(tail_y > -1);
+            assert!(distance(head_x, head_y, tail_x, tail_y) < 2);
         }
     }
 
@@ -48,39 +51,39 @@ fn part1(input: &str) -> usize {
 #[aoc(day9, part2)]
 fn part2(input: &str) -> usize {
     let mut tail_visits: HashSet<(i32, i32)> = HashSet::new();
-    let mut headX = 0;
+    let mut head_x = 0;
     let mut tail = vec![];
     for _ in 0..9 {
-        tail.push((0,0));
+        tail.push((0, 0));
     }
-    let mut headY = 0;
+    let mut head_y = 0;
     for line in input.lines() {
         // println!("{}", line);
         let (direction, steps) = directions(line);
-        for i in 0..steps {
+        for _ in 0..steps {
             match direction {
-                Up => headY +=1,
-                Down => headY -= 1,
-                Left => headX -= 1,
-                Right => headX += 1,
+                Up => head_y += 1,
+                Down => head_y -= 1,
+                Left => head_x -= 1,
+                Right => head_x += 1,
             };
             for i in 0..9 {
                 let (x_to_follow, y_to_follow) = if i == 0 {
-                    (headX, headY)
+                    (head_x, head_y)
                 } else {
-                    *tail.get(i-1).unwrap()
+                    *tail.get(i - 1).unwrap()
                 };
-                let (x,y) = tail.get(i).unwrap();
-                let (new_x, new_y) = calc_new_tail_position(x_to_follow, y_to_follow, *x,*y);
+                let (x, y) = tail.get(i).unwrap();
+                let (new_x, new_y) = calc_new_tail_position(x_to_follow, y_to_follow, *x, *y);
                 *tail.get_mut(i).unwrap() = (new_x, new_y);
             }
-            // println!("\tStep, now at {},{}", headX, headY);
+            // println!("\tStep, now at {},{}", head_x, head_y);
 
             // let tail_set = tail.iter().copied().collect::<HashSet<(_,_)>>();
             // const area: i32 = 10;
-            // for y in ((headY-area)..(headY+area)).rev() {
-            //     for x in (headX-area)..(headX+area) {
-            //         if headX == x && headY == y {
+            // for y in ((head_y-area)..(head_y+area)).rev() {
+            //     for x in (head_x-area)..(head_x+area) {
+            //         if head_x == x && head_y == y {
             //             print!("H");
             //         } else if tail_set.contains(&(x,y)) {
             //             print!("T")
@@ -102,14 +105,13 @@ fn part2(input: &str) -> usize {
             //     //         ].contains(&(*x,*y)), "shouldn't add {},{}", x,y);
             //     tail_visits.insert((*x,*y));
             // }
-            // assert!(headX > -1);
-            // assert!(headY > -1);
-            // assert!(tailX > -1);
-            // assert!(tailY > -1);
-            // assert!(distance(headX, headY, tailX, tailY) < 2);
+            // assert!(head_x > -1);
+            // assert!(head_y > -1);
+            // assert!(tail_x > -1);
+            // assert!(tail_y > -1);
+            // assert!(distance(head_x, head_y, tail_x, tail_y) < 2);
         }
     }
-
 
     // println!("result: {:?}", tail_visits);
     // let x_min = *tail_visits.iter().map(|(x,y)|x).min().unwrap();
@@ -129,47 +131,51 @@ fn part2(input: &str) -> usize {
     tail_visits.len()
 }
 
-fn calc_new_tail_position(headX:i32, headY:i32, tailX:i32, tailY:i32) -> (i32, i32) {
-    if distance(headX, headY, tailX, tailY) < 2 {
-        (tailX, tailY)
-    } else if headX == tailX {
-        if headY > tailY {
-            (tailX, tailY + 1)
+fn calc_new_tail_position(head_x: i32, head_y: i32, tail_x: i32, tail_y: i32) -> (i32, i32) {
+    if distance(head_x, head_y, tail_x, tail_y) < 2 {
+        (tail_x, tail_y)
+    } else if head_x == tail_x {
+        if head_y > tail_y {
+            (tail_x, tail_y + 1)
         } else {
-            (tailX, tailY - 1)
+            (tail_x, tail_y - 1)
         }
-    } else if headY == tailY {
-        if headX > tailX {
-            (tailX + 1, tailY)
+    } else if head_y == tail_y {
+        if head_x > tail_x {
+            (tail_x + 1, tail_y)
         } else {
-            (tailX - 1, tailY)
+            (tail_x - 1, tail_y)
         }
     } else {
         // diagonal
-        if headX > tailX && headY > tailY {
+        if head_x > tail_x && head_y > tail_y {
             // UpRight
-            (tailX + 1, tailY + 1)
-        } else if headX > tailX && headY < tailY {
+            (tail_x + 1, tail_y + 1)
+        } else if head_x > tail_x && head_y < tail_y {
             // UpLeft
-            (tailX + 1, tailY - 1)
-        } else if headX < tailX && headY > tailY {
+            (tail_x + 1, tail_y - 1)
+        } else if head_x < tail_x && head_y > tail_y {
             // DownRight
-            (tailX -1 , tailY + 1)
+            (tail_x - 1, tail_y + 1)
         } else {
             // DownLeft
-            (tailX -1 , tailY - 1)
+            (tail_x - 1, tail_y - 1)
         }
     }
 }
 
-fn distance(headX:i32, headY:i32, tailX:i32, tailY:i32) -> i32 {
-    (headX - tailX).abs().max((headY - tailY).abs())
+fn distance(head_x: i32, head_y: i32, tail_x: i32, tail_y: i32) -> i32 {
+    (head_x - tail_x).abs().max((head_y - tail_y).abs())
 }
 
 enum Direction {
-    Up, Down, Left, Right
+    Up,
+    Down,
+    Left,
+    Right,
 }
-fn directions(line:&str) -> (Direction, usize) {
+
+fn directions(line: &str) -> (Direction, usize) {
     let mut split = line.split_ascii_whitespace();
     let direction = split.next().unwrap();
     let steps = split.next().unwrap();
@@ -178,7 +184,7 @@ fn directions(line:&str) -> (Direction, usize) {
         "D" => Down,
         "L" => Left,
         "R" => Right,
-        _ => panic!()
+        _ => panic!(),
     };
     let steps = steps.parse::<usize>().unwrap();
     (direction, steps)
@@ -193,7 +199,7 @@ fn directions(line:&str) -> (Direction, usize) {
 mod tests {
     use super::*;
 
-#[test]
+    #[test]
     fn verify_part1() {
         let input = include_str!("../input/2022/day9.txt");
         assert_eq!(part1(input), 6175);
@@ -234,7 +240,7 @@ L 5
 R 2"#,
         );
 
-        assert_eq!(result, 1 )
+        assert_eq!(result, 1)
     }
 
     #[test]
