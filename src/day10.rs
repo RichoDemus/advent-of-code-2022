@@ -6,11 +6,11 @@ fn part1(input: &str) -> i64 {
     let mut cycle = 0;
     let mut register = 1;
     for line in input.lines() {
-        println!("cycle: {}, reg: {}, line: {}>", cycle, register, line);
+        // println!("cycle: {}, reg: {}, line: {}>", cycle, register, line);
         if line.contains("noop") {
             cycle += 1;
             if [20, 60, 100, 140, 180, 220].contains(&cycle) {
-                println!("1cycle {} reg is {} fpr {}", cycle, register, register*cycle);
+                // println!("1cycle {} reg is {} fpr {}", cycle, register, register*cycle);
                 result += cycle * register;
             }
         } else if line.contains("addx") {
@@ -20,12 +20,12 @@ fn part1(input: &str) -> i64 {
             let num: i64 = num.parse().unwrap();
             cycle += 1;
             if [20, 60, 100, 140, 180, 220].contains(&cycle) {
-                println!("2cycle {} reg is {} fpr {}", cycle, register, register*cycle);
+                // println!("2cycle {} reg is {} fpr {}", cycle, register, register*cycle);
                 result += cycle * register;
             }
             cycle += 1;
             if [20, 60, 100, 140, 180, 220].contains(&cycle) {
-                println!("3cycle {} reg is {} fpr {}", cycle, register, register*cycle);
+                // println!("3cycle {} reg is {} fpr {}", cycle, register, register*cycle);
                 result += cycle * register;
             }
             register += num;
@@ -37,11 +37,13 @@ fn part1(input: &str) -> i64 {
 }
 
 #[derive(Debug)]
-enum Op{
-    Noop, Addx, Addx2(i64),
+enum Op {
+    Noop,
+    Addx,
+    Addx2(i64),
 }
 
-#[aoc(day10, part1,cycle)]
+#[aoc(day10, part1, cycle)]
 fn part1_alt(input: &str) -> i64 {
     let mut lines = input.lines().collect::<VecDeque<_>>();
     let mut op_buffer = VecDeque::new();
@@ -80,13 +82,11 @@ fn part1_alt(input: &str) -> i64 {
         let option = op_buffer.pop_front();
         // println!("\tOp: {:?}", option);
         match option {
-            Some(Op::Noop) | Some(Op::Addx) => {
-            // noop
-            },
+            Some(Op::Noop | Op::Addx) | None => {
+                // noop
+            }
             Some(Op::Addx2(add)) => {
                 register += add;
-            },
-            None => {
             }
         };
 
@@ -95,16 +95,67 @@ fn part1_alt(input: &str) -> i64 {
 
     result
 }
-// #[aoc(day10, part2)]
-// fn part2(input: &str) -> usize {
-//     todo!()
-// }
+
+#[aoc(day10, part2)]
+fn part2(input: &str) -> String {
+    let mut lines = input.lines().collect::<VecDeque<_>>();
+    let mut op_buffer = VecDeque::new();
+    let mut register = 1;
+    let mut result = String::new();
+    for _row in 0..6 {
+        for column in 0..40 {
+            if register == column || register == column + 1 || register == column - 1 {
+                result += "# ";
+            } else {
+                result += "  ";
+            }
+
+            // println!("Cycle {}, reg: {}, buff: {:?}", cycle, register, op_buffer);
+            if op_buffer.is_empty() {
+                let option1 = lines.pop_front();
+                // println!("\t\tnext op: {:?}", option1);
+                match option1 {
+                    None => {
+                        break;
+                    }
+                    Some(op) => {
+                        if op.contains("noop") {
+                            // println!("\t\tAdding noop");
+                            op_buffer.push_back(Op::Noop);
+                        } else if op.contains("addx ") {
+                            let mut split = op.split_ascii_whitespace();
+                            split.next();
+                            let num = split.next().unwrap();
+                            let num: i64 = num.parse().unwrap();
+                            // println!("\t\tAdding Addx({})", num);
+                            op_buffer.push_back(Op::Addx);
+                            op_buffer.push_back(Op::Addx2(num));
+                        }
+                    }
+                }
+            }
+            let option = op_buffer.pop_front();
+            // println!("\tOp: {:?}", option);
+            match option {
+                Some(Op::Noop | Op::Addx) | None => {
+                    // noop
+                }
+                Some(Op::Addx2(add)) => {
+                    register += add;
+                }
+            };
+        }
+        result += "\n";
+    }
+
+    result
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-#[test]
+    #[test]
     fn verify_part1() {
         let input = include_str!("../input/2022/day10.txt");
         // assert_eq!(part1(input), 13920);
@@ -112,18 +163,18 @@ mod tests {
         assert_eq!(part1_alt(input), 13920);
     }
 
-    // #[test]
-    // fn verify_part2() {
-    //     let input = include_str!("../input/2022/day10.txt");
-    //     assert_eq!(part2(input), 0);
-    // }
+    #[test]
+    fn verify_part2() {
+        let input = include_str!("../input/2022/day10.txt");
+        assert_eq!(part2(input), "# # # #     # #     #         #     #   # # #     #         # # # #       # #   \n#         #     #   #         #     #   #     #   #         #               #   \n# # #     #         #         # # # #   # # #     #         # # #           #   \n#         #   # #   #         #     #   #     #   #         #               #   \n#         #     #   #         #     #   #     #   #         #         #     #   \n# # # #     # # #   # # # #   #     #   # # #     # # # #   #           # #     \n".to_string());
+    }
 
     #[test]
     fn part1_small_example() {
         let input = r#"noop
 addx 3
 addx -5"#;
-    part1_alt(input);
+        part1_alt(input);
     }
 
     #[test]
@@ -275,16 +326,161 @@ noop
 noop
 noop"#;
 
-        assert_eq!(part1(input, ), 13140);
-        assert_eq!(part1_alt(input, ), 13140);
+        assert_eq!(part1(input), 13140);
+        assert_eq!(part1_alt(input), 13140);
     }
 
-    // #[test]
-    // fn part2_provided_example() {
-    //     let result = part2(
-    //         r#""#,
-    //     );
-    //
-    //     assert_eq!(result, 0)
-    // }
+    #[test]
+    fn part2_provided_example() {
+        let result = part2(
+            r#"addx 15
+addx -11
+addx 6
+addx -3
+addx 5
+addx -1
+addx -8
+addx 13
+addx 4
+noop
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx -35
+addx 1
+addx 24
+addx -19
+addx 1
+addx 16
+addx -11
+noop
+noop
+addx 21
+addx -15
+noop
+noop
+addx -3
+addx 9
+addx 1
+addx -3
+addx 8
+addx 1
+addx 5
+noop
+noop
+noop
+noop
+noop
+addx -36
+noop
+addx 1
+addx 7
+noop
+noop
+noop
+addx 2
+addx 6
+noop
+noop
+noop
+noop
+noop
+addx 1
+noop
+noop
+addx 7
+addx 1
+noop
+addx -13
+addx 13
+addx 7
+noop
+addx 1
+addx -33
+noop
+noop
+noop
+addx 2
+noop
+noop
+noop
+addx 8
+noop
+addx -1
+addx 2
+addx 1
+noop
+addx 17
+addx -9
+addx 1
+addx 1
+addx -3
+addx 11
+noop
+noop
+addx 1
+noop
+addx 1
+noop
+noop
+addx -13
+addx -19
+addx 1
+addx 3
+addx 26
+addx -30
+addx 12
+addx -1
+addx 3
+addx 1
+noop
+noop
+noop
+addx -9
+addx 18
+addx 1
+addx 2
+noop
+noop
+addx 9
+noop
+noop
+noop
+addx -1
+addx 2
+addx -37
+addx 1
+addx 3
+noop
+addx 15
+addx -21
+addx 22
+addx -6
+addx 1
+noop
+addx 2
+addx 1
+noop
+addx -10
+noop
+noop
+addx 20
+addx 1
+addx 2
+addx 2
+addx -6
+addx -11
+noop
+noop
+noop"#,
+        );
+
+        assert_eq!(result, "# #     # #     # #     # #     # #     # #     # #     # #     # #     # #     \n# # #       # # #       # # #       # # #       # # #       # # #       # # #   \n# # # #         # # # #         # # # #         # # # #         # # # #         \n# # # # #           # # # # #           # # # # #           # # # # #           \n# # # # # #             # # # # # #             # # # # # #             # # # # \n# # # # # # #               # # # # # # #               # # # # # # #           \n".to_string())
+    }
 }
