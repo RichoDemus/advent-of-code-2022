@@ -1,7 +1,9 @@
-use crate::day11::Operation::{Mul, MulOld, Plus};
+use std::collections::VecDeque;
+
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::collections::VecDeque;
+
+use crate::day11::Operation::{Mul, MulOld, Plus};
 
 #[derive(Debug, Clone)]
 struct Monkey {
