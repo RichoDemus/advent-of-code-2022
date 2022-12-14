@@ -1,5 +1,6 @@
-use crate::day9::Direction::{Down, Left, Right, Up};
 use std::collections::HashSet;
+
+use crate::day9::Direction::{Down, Left, Right, Up};
 
 #[aoc(day9, part1)]
 fn part1(input: &str) -> usize {

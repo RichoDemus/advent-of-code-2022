@@ -1,5 +1,6 @@
-use crate::grid::Grid;
 use std::collections::HashMap;
+
+use crate::grid::Grid;
 
 #[aoc(day8, part1)]
 fn part1(input: &str) -> usize {
