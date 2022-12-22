@@ -17,5 +17,6 @@ mod day7;
 mod day8;
 mod day9;
 mod grid;
+mod day13;
 
 aoc_lib! { year = 2022 }
