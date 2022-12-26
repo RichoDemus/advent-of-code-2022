@@ -7,11 +7,11 @@ use itertools::Itertools;
 fn part1(input: &str) -> usize {
     let input = parse(input);
 
-    println!("p: {:?}", input);
+    // println!("p: {:?}", input);
 
     input.into_iter().enumerate()
         .map(|(index, (left, right))|{
-            println!("Checking {} and {}", left, right);
+            // println!("Checking {} and {}", left, right);
             if left < right {index+1} else { 0}
         })
         .sum()
@@ -27,7 +27,7 @@ fn parse(input: &str) -> Vec<(Item, Item)> {
     }).collect::<Vec<_>>()
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Item {
     List(Vec<Item>),
     Number(u32),
@@ -67,13 +67,12 @@ impl PartialOrd for Item {
             (Item::List(left), Item::List(right)) => vec_cmp(left, right),
             (Item::List(left), Item::Number(r)) => left.partial_cmp(&vec![Item::Number(*r)]),
             (Item::Number(left), Item::List(r)) => vec![Item::Number(*left)].partial_cmp(r),
-            // (l, r) => todo!("Not implemented for {} and {}", l, r)
         }
     }
 }
 
 fn vec_cmp(left: &Vec<Item>, right: &Vec<Item>) -> Option<Ordering> {
-    println!("compare {:?} {:?}", left, right);
+    // println!("compare {:?} {:?}", left, right);
     let mut i = 0;
     loop {
         let l = left.get(i);
@@ -91,7 +90,7 @@ fn vec_cmp(left: &Vec<Item>, right: &Vec<Item>) -> Option<Ordering> {
         }
         let r = r.unwrap();
 
-        println!("\tcompare {} {}", l, r);
+        // println!("\tcompare {} {}", l, r);
         match l.cmp(r) {
             Ordering::Less => {return Some(Ordering::Less)}
             Ordering::Equal => {
@@ -102,7 +101,6 @@ fn vec_cmp(left: &Vec<Item>, right: &Vec<Item>) -> Option<Ordering> {
         }
         i += 1;
     }
-    Some(Ordering::Equal)
 }
 
 fn parse_item(str: &str) -> Item {
@@ -154,17 +152,24 @@ fn parse_item(str: &str) -> Item {
         }
     }
     panic!("Unreachable code");
-    // let item = stack.pop_back().unwrap();
-    // println!("Parsed: {}", item);
-    // assert_eq!(str, format!("{}", item));
-    //
-    // item
 }
 
-// #[aoc(day13, part2)]
-// fn part2(input: &str) -> usize {
-//     todo!()
-// }
+#[aoc(day13, part2)]
+fn part2(input: &str) -> usize {
+    let mut items = input.lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(|l| parse_item(l))
+        .collect::<Vec<_>>();
+
+    let two = parse_item("[[2]]");
+    let six = parse_item("[[6]]");
+    items.push(two.clone());
+    items.push(six.clone());
+
+    items.sort();
+
+    (items.iter().position(|i|i==&two).unwrap() +1)*  (items.iter().position(|i|i==&six).unwrap()+1)
+}
 
 #[cfg(test)]
 mod tests {
@@ -177,11 +182,11 @@ mod tests {
         assert_eq!(part1(input), 6415);
     }
 
-    // #[test]
-    // fn verify_part2() {
-    //     let input = include_str!("../input/2022/day13.txt");
-    //     assert_eq!(part2(input), 0);
-    // }
+    #[test]
+    fn verify_part2() {
+        let input = include_str!("../input/2022/day13.txt");
+        assert_eq!(part2(input), 20056);
+    }
 
     #[test]
     fn test_isolated_examples() {
@@ -227,12 +232,34 @@ mod tests {
         assert_eq!(result, 13)
     }
 
-    // #[test]
-    // fn part2_provided_example() {
-    //     let result = part2(
-    //         r#""#,
-    //     );
-    //
-    //     assert_eq!(result, 0)
-    // }
+    #[test]
+    fn part2_provided_example() {
+        let result = part2(
+            r#"[1,1,3,1,1]
+[1,1,5,1,1]
+
+[[1],[2,3,4]]
+[[1],4]
+
+[9]
+[[8,7,6]]
+
+[[4,4],4,4]
+[[4,4],4,4,4]
+
+[7,7,7,7]
+[7,7,7]
+
+[]
+[3]
+
+[[[]]]
+[[]]
+
+[1,[2,[3,[4,[5,6,7]]]],8,9]
+[1,[2,[3,[4,[5,6,0]]]],8,9]"#,
+        );
+
+        assert_eq!(result, 140)
+    }
 }
