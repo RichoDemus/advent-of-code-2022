@@ -7,7 +7,7 @@ fn part1(input: &str) -> u32 {
             elf.split('\n')
                 .map(|line| {
                     line.parse::<u32>()
-                        .unwrap_or_else(|_| panic!("can't parse {}", line))
+                        .unwrap_or_else(|_| panic!("can't parse {line}"))
                 })
                 .sum()
         })
@@ -24,7 +24,7 @@ fn part2(input: &str) -> u32 {
             elf.split('\n')
                 .map(|line| {
                     line.parse::<u32>()
-                        .unwrap_or_else(|_| panic!("can't parse {}", line))
+                        .unwrap_or_else(|_| panic!("can't parse {line}"))
                 })
                 .sum()
         })

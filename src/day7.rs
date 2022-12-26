@@ -194,7 +194,7 @@ fn part1(input: &str) -> i32 {
 
     println!("total size: {}", filesystem.size());
     let dirs = filesystem.dirs_with_sizes();
-    println!("sizes: {:?}", dirs);
+    println!("sizes: {dirs:?}");
 
     dirs.into_iter()
         .map(|size| if size <= 100_000 { size } else { 0 })
@@ -210,11 +210,11 @@ fn part2(input: &str) -> i32 {
     let current_usage = filesystem.size();
     let missing_space = 0 - (total_size - required_space - current_usage);
 
-    println!("usage: {}, need to free {}", current_usage, missing_space);
+    println!("usage: {current_usage}, need to free {missing_space}");
 
     let mut candidates_for_deletion = filesystem.dirs_with_sizes();
     candidates_for_deletion.sort_unstable_by_key(|size| *size);
-    println!("candidates: {:?}", candidates_for_deletion);
+    println!("candidates: {candidates_for_deletion:?}");
     for candidate in candidates_for_deletion {
         if candidate > missing_space {
             return candidate;

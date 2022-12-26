@@ -13,7 +13,7 @@ impl TryFrom<char> for Move {
             'A' | 'X' => Ok(Self::Rock),
             'B' | 'Y' => Ok(Self::Paper),
             'C' | 'Z' => Ok(Self::Scissors),
-            e => Err(format!("unexpected value: {}", e)),
+            e => Err(format!("unexpected value: {e}")),
         }
     }
 }
@@ -57,7 +57,7 @@ impl TryFrom<char> for Outcome {
             'X' => Ok(Self::Lose),
             'Y' => Ok(Self::Draw),
             'Z' => Ok(Self::Win),
-            e => Err(format!("unexpected value: {}", e)),
+            e => Err(format!("unexpected value: {e}")),
         }
     }
 }

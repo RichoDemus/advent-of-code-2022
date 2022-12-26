@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
+
 use itertools::Itertools;
 
 #[aoc(day13, part1)]
@@ -9,22 +10,30 @@ fn part1(input: &str) -> usize {
 
     // println!("p: {:?}", input);
 
-    input.into_iter().enumerate()
-        .map(|(index, (left, right))|{
+    input
+        .into_iter()
+        .enumerate()
+        .map(|(index, (left, right))| {
             // println!("Checking {} and {}", left, right);
-            if left < right {index+1} else { 0}
+            if left < right {
+                index + 1
+            } else {
+                0
+            }
         })
         .sum()
 }
 
-
 fn parse(input: &str) -> Vec<(Item, Item)> {
-    input.split("\n\n").map(|packets| {
-        let mut lines = packets.trim().lines();
-        let first = lines.next().unwrap();
-        let second = lines.next().unwrap();
-        (parse_item(first), parse_item(second))
-    }).collect::<Vec<_>>()
+    input
+        .split("\n\n")
+        .map(|packets| {
+            let mut lines = packets.trim().lines();
+            let first = lines.next().unwrap();
+            let second = lines.next().unwrap();
+            (parse_item(first), parse_item(second))
+        })
+        .collect::<Vec<_>>()
 }
 
 #[derive(Debug, Clone)]
@@ -32,14 +41,15 @@ enum Item {
     List(Vec<Item>),
     Number(u32),
 }
+
 impl Display for Item {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Item::List(list) => {
-                let items = list.iter().map(|i|format!("{}", i)).join(",");
-                write!(f,"[{}]", items)
+            Self::List(list) => {
+                let items = list.iter().map(|i| format!("{i}")).join(",");
+                write!(f, "[{items}]")
             }
-            Item::Number(n) => write!(f, "{}", n),
+            Self::Number(n) => write!(f, "{n}"),
         }
     }
 }
@@ -50,9 +60,7 @@ impl PartialEq<Self> for Item {
     }
 }
 
-impl Eq for Item {
-
-}
+impl Eq for Item {}
 
 impl Ord for Item {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -63,48 +71,52 @@ impl Ord for Item {
 impl PartialOrd for Item {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {
-            (Item::Number(left), Item::Number(right)) => left.partial_cmp(&right),
-            (Item::List(left), Item::List(right)) => vec_cmp(left, right),
-            (Item::List(left), Item::Number(r)) => left.partial_cmp(&vec![Item::Number(*r)]),
-            (Item::Number(left), Item::List(r)) => vec![Item::Number(*left)].partial_cmp(r),
+            (Self::Number(left), Self::Number(right)) => left.partial_cmp(right),
+            (Self::List(left), Self::List(right)) => vec_cmp(left, right),
+            (Self::List(left), Self::Number(r)) => left.partial_cmp(&vec![Self::Number(*r)]),
+            (Self::Number(left), Self::List(r)) => vec![Self::Number(*left)].partial_cmp(r),
         }
     }
 }
 
-fn vec_cmp(left: &Vec<Item>, right: &Vec<Item>) -> Option<Ordering> {
+fn vec_cmp(left: &[Item], right: &[Item]) -> Option<Ordering> {
     // println!("compare {:?} {:?}", left, right);
     let mut i = 0;
     loop {
         let l = left.get(i);
         let r = right.get(i);
         if l.is_none() && r.is_none() {
-            return Some(Ordering::Equal)
+            return Some(Ordering::Equal);
         }
         if l.is_none() {
-            return Some(Ordering::Less)
+            return Some(Ordering::Less);
         }
         let l = l.unwrap();
 
         if r.is_none() {
-            return Some(Ordering::Greater)
+            return Some(Ordering::Greater);
         }
         let r = r.unwrap();
 
         // println!("\tcompare {} {}", l, r);
         match l.cmp(r) {
-            Ordering::Less => {return Some(Ordering::Less)}
+            Ordering::Less => {
+                return Some(Ordering::Less);
+            }
             Ordering::Equal => {
                 // they are equal, we should compare the next
                 // panic!("\t {} = {}", l, r)
             }
-            Ordering::Greater => {return Some(Ordering::Greater)}
+            Ordering::Greater => {
+                return Some(Ordering::Greater);
+            }
         }
         i += 1;
     }
 }
 
 fn parse_item(str: &str) -> Item {
-    assert_eq!(str.chars().collect::<Vec<_>>().get(0).unwrap(), &'[');
+    assert_eq!(str.chars().collect::<Vec<_>>().first().unwrap(), &'[');
     let mut stack = VecDeque::new();
     stack.push_back(Item::List(vec![]));
     let mut digit_buffer = String::new();
@@ -115,7 +127,7 @@ fn parse_item(str: &str) -> Item {
             '[' => {
                 stack.push_back(Item::List(vec![]));
                 // if let Item::List(l) = &mut root {
-                    // stack.back_mut().unwrap().push(Item::List(vec![]));
+                // stack.back_mut().unwrap().push(Item::List(vec![]));
                 // }
             }
             ']' => {
@@ -131,23 +143,25 @@ fn parse_item(str: &str) -> Item {
                 } else {
                     // we pushed the last one?
                     // println!("Parsed: {}", closed_item);
-                    assert_eq!(str, format!("{}", closed_item));
-                    return closed_item
+                    assert_eq!(str, format!("{closed_item}"));
+                    return closed_item;
                 }
-
             }
             ',' => {
                 if !digit_buffer.is_empty() {
                     if let Item::List(l) = stack.back_mut().unwrap() {
-                        l.push(Item::Number(digit_buffer.parse::<u32>().unwrap_or_else(|_| panic!("couldn't parse {:?}", digit_buffer))));
+                        l.push(Item::Number(
+                            digit_buffer
+                                .parse::<u32>()
+                                .unwrap_or_else(|_| panic!("couldn't parse {digit_buffer:?}")),
+                        ));
                     }
                     digit_buffer.clear();
                 }
             }
             c => {
-                assert!(c.is_digit(10));
+                assert!(c.is_ascii_digit());
                 digit_buffer.push(c);
-
             }
         }
     }
@@ -156,9 +170,10 @@ fn parse_item(str: &str) -> Item {
 
 #[aoc(day13, part2)]
 fn part2(input: &str) -> usize {
-    let mut items = input.lines()
+    let mut items = input
+        .lines()
         .filter(|l| !l.trim().is_empty())
-        .map(|l| parse_item(l))
+        .map(parse_item)
         .collect::<Vec<_>>();
 
     let two = parse_item("[[2]]");
@@ -168,14 +183,15 @@ fn part2(input: &str) -> usize {
 
     items.sort();
 
-    (items.iter().position(|i|i==&two).unwrap() +1)*  (items.iter().position(|i|i==&six).unwrap()+1)
+    (items.iter().position(|i| i == &two).unwrap() + 1)
+        * (items.iter().position(|i| i == &six).unwrap() + 1)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-#[test]
+    #[test]
     fn verify_part1() {
         let input = include_str!("../input/2022/day13.txt");
         assert_ne!(part1(input), 6640);

@@ -73,7 +73,7 @@ fn part2(input: &str) -> usize {
     // println!("{}", grid);
     // println!("start: {:?}, end: {:?}", start, end);
     let rounds = start.len();
-    println!("{} starts", rounds);
+    println!("{rounds} starts");
 
     let shortest = start
         .into_iter()
@@ -109,7 +109,7 @@ fn part2(input: &str) -> usize {
 
             // println!("path: {:?}", result);
             // println!("len: {:?}", result);
-            println!("{}/{}", i, rounds);
+            println!("{i}/{rounds}");
             result
         })
         .map(|path| path.len())

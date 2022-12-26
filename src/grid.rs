@@ -87,12 +87,12 @@ impl<V: std::str::FromStr + std::fmt::Display + std::fmt::Debug> Display for Gri
                 let value = self
                     .grid
                     .get(&(x, y))
-                    .unwrap_or_else(|| panic!("No value at {},{}: {:?}", x, y, self.grid));
-                output += format!("{}", value).as_str();
+                    .unwrap_or_else(|| panic!("No value at {x},{y}: {:?}", self.grid));
+                output += format!("{value}").as_str();
             }
             output += "\n";
         }
-        write!(f, "{}", output)
+        write!(f, "{output}")
     }
 }
 
