@@ -53,69 +53,52 @@ fn part1(input: &str) -> usize {
     result.len() - 1
 }
 
-#[allow(clippy::flat_map_option)]
 #[aoc(day12, part2)]
 fn part2(input: &str) -> usize {
     let grid: Grid<char> = Grid::from_non_delim_block(input);
-    let start = grid
+    let ends = grid
         .grid
         .iter()
         .filter(|((_x, _y), value)| value == &&'S' || value == &&'a')
         .map(|(pos, _)| pos)
         .copied()
         .collect::<Vec<_>>();
-    let end = *grid
+    let start = *grid
         .grid
         .iter()
         .find(|((_x, _y), value)| value == &&'E')
         .unwrap()
         .0;
-    // println!("{}", grid);
-    // println!("start: {:?}, end: {:?}", start, end);
-    let rounds = start.len();
-    println!("{rounds} starts");
 
-    let shortest = start
-        .into_iter()
-        .enumerate()
-        .flat_map(|(i, (start_x, start_y))| {
-            let result = bfs(
-                &(start_x, start_y),
-                |(x, y)| {
-                    let current_height = *grid.grid.get(&(*x, *y)).unwrap();
-                    let current_height = if current_height == 'S' {
+    let result = bfs(
+        &start,
+        |(x, y)| {
+            let current_height = *grid.grid.get(&(*x, *y)).unwrap();
+            let current_height = if current_height == 'E' {
+                'z'
+            } else {
+                current_height
+            };
+            grid.calc_in_bounds_four_way_neighbours(*x, *y)
+                .into_iter()
+                .filter(|(n_x, n_y)| {
+                    let neighbour_height = *grid.grid.get(&(*n_x, *n_y)).unwrap();
+                    let neighbour_height = if neighbour_height == 'S' {
                         'a'
                     } else {
-                        current_height
+                        neighbour_height
                     };
-                    grid.calc_in_bounds_four_way_neighbours(*x, *y)
-                        .into_iter()
-                        .filter(|(n_x, n_y)| {
-                            let neighbour_height = *grid.grid.get(&(*n_x, *n_y)).unwrap();
-                            let neighbour_height = if neighbour_height == 'E' {
-                                'z'
-                            } else {
-                                neighbour_height
-                            };
-                            // println!("we're at {},{}:{}({}) looking at {},{}:{}({})", x, y, current_height, current_height as u32, n_x, n_y, neighbour_height, neighbour_height as u32);
-                            let current_height = current_height as u32;
-                            let neighbour_height = neighbour_height as u32;
-                            current_height + 1 >= neighbour_height
-                        })
-                        .collect::<Vec<_>>()
-                },
-                |(x, y)| x == &end.0 && y == &end.1,
-            );
+                    let current_height = current_height as u32;
+                    let neighbour_height = neighbour_height as u32;
+                    current_height - 1 <= neighbour_height
+                })
+                .collect::<Vec<_>>()
+        },
+        |(x, y)| ends.contains(&(*x, *y)),
+    )
+    .expect("No path found");
 
-            // println!("path: {:?}", result);
-            // println!("len: {:?}", result);
-            println!("{i}/{rounds}");
-            result
-        })
-        .map(|path| path.len())
-        .min()
-        .unwrap();
-    shortest - 1
+    result.len() - 1
 }
 
 #[cfg(test)]
@@ -157,6 +140,6 @@ acctuvwj
 abdefghi"#,
         );
 
-        assert_eq!(result, 29)
+        assert_eq!(result, 29);
     }
 }

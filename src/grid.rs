@@ -2,12 +2,16 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-#[derive(Clone)]
-pub struct Grid<V: FromStr + std::fmt::Display + std::fmt::Debug> {
+#[derive(Clone, Default)]
+pub struct Grid<V: FromStr + Display + std::fmt::Debug + Default> {
     pub grid: HashMap<(i64, i64), V>,
+    pub default: Option<V>,
 }
 
-impl<V: FromStr + std::fmt::Display + std::fmt::Debug> Grid<V> {
+impl<V: FromStr + Display + std::fmt::Debug + Default> Grid<V> {
+    pub fn get(&self, coord: &(i64, i64)) -> Option<&V> {
+        self.grid.get(coord).or(self.default.as_ref())
+    }
     #[allow(dead_code)]
     pub(crate) fn calc_in_bounds_four_way_neighbours(&self, x: i64, y: i64) -> Vec<(i64, i64)> {
         get_four_neighbours(x, y)
@@ -17,7 +21,7 @@ impl<V: FromStr + std::fmt::Display + std::fmt::Debug> Grid<V> {
     }
 }
 
-impl<V: FromStr + std::fmt::Display + std::fmt::Debug> Grid<V> {
+impl<V: FromStr + Display + std::fmt::Debug + Default> Grid<V> {
     /// constructs grid from a text block like:
     /// VVVV
     /// VVVV
@@ -38,7 +42,10 @@ impl<V: FromStr + std::fmt::Display + std::fmt::Debug> Grid<V> {
                     .collect::<Vec<_>>()
             })
             .collect();
-        Self { grid }
+        Self {
+            grid,
+            default: None,
+        }
     }
     // todo impl
     // pub fn for_each_mut()
@@ -74,7 +81,7 @@ impl<V: FromStr + std::fmt::Display + std::fmt::Debug> Grid<V> {
     }
 }
 
-impl<V: std::str::FromStr + std::fmt::Display + std::fmt::Debug> Display for Grid<V> {
+impl<V: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Default> Display for Grid<V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let x_min = *self.grid.keys().map(|(x, _y)| x).min().unwrap();
         let x_max = *self.grid.keys().map(|(x, _y)| x).max().unwrap();
@@ -87,6 +94,7 @@ impl<V: std::str::FromStr + std::fmt::Display + std::fmt::Debug> Display for Gri
                 let value = self
                     .grid
                     .get(&(x, y))
+                    .or(self.default.as_ref())
                     .unwrap_or_else(|| panic!("No value at {x},{y}: {:?}", self.grid));
                 output += format!("{value}").as_str();
             }
