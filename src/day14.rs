@@ -2,7 +2,6 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 
 use itertools::Itertools;
-
 use strum::EnumString;
 
 use crate::grid::Grid;
